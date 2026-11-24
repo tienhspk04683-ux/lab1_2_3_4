@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Đơn hàng{% endblock %}{% block heading %}Danh sách đơn hàng{% endblock %}
+{% block content %}<section class="panel"><div class="panel-head"><div><h3>Đơn hàng PolyMart</h3><p>{{ orders|length }} bản ghi</p></div></div><div class="table-wrap"><table><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Trạng thái</th></tr></thead><tbody>
+{% for o in orders %}<tr><td class="mono">{{ o.id }}</td><td>{{ o.orderDate or '—' }}</td><td>{{ o.status or '—' }}</td></tr>{% else %}<tr><td colspan="3" class="empty">Không có dữ liệu hoặc API chưa kết nối.</td></tr>{% endfor %}
+</tbody></table></div></section>{% endblock %}

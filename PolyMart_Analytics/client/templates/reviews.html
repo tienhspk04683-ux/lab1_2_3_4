@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Đánh giá & Spam{% endblock %}{% block heading %}Phân tích đánh giá & Spam{% endblock %}
+{% block content %}
+<div class="intro"><div><h2>Review Quality Monitor</h2><p>Thống kê dựa trên các cờ KeywordBad, KeywordAd, PatternRepeat và IsSpam đã có trong bảng Reviews.</p></div></div>
+<div class="kpis">
+{% for label,key in [('Tổng đánh giá','total'),('Đánh dấu spam','spam'),('Có từ khóa xấu','badKeyword'),('Có từ khóa quảng cáo','adKeyword'),('Có mẫu lặp','repeatedPattern')] %}
+<div class="kpi"><span>{{ label }}</span><strong>{{ data.get('summary',{}).get(key,0) or 0 }}</strong></div>{% endfor %}
+</div>
+<section class="panel"><h3>Tỷ lệ spam được gắn nhãn</h3>
+{% set total=data.get('summary',{}).get('total',0) or 0 %}{% set spam=data.get('summary',{}).get('spam',0) or 0 %}
+<div class="big-number">{{ ('%.1f'|format(spam*100/total)) if total else '0.0' }}<small>%</small></div>
+<div class="progress"><span style="width:{{ (spam*100/total) if total else 0 }}%"></span></div>
+<p class="muted">Đây là tỷ lệ theo nhãn IsSpam trong dữ liệu, không phải kết quả của một mô hình ML mới.</p></section>
+<section class="panel"><h3>Khách hàng có nhiều đánh giá bị gắn cờ</h3><div class="table-wrap"><table><thead><tr><th>Mã khách hàng</th><th>Số đánh giá</th><th>Số đánh giá spam</th></tr></thead><tbody>
+{% for x in data.get('customers',[]) %}<tr><td class="mono">{{ x.customerId }}</td><td>{{ x.reviews }}</td><td>{{ x.spamReviews }}</td></tr>{% else %}<tr><td colspan="3" class="empty">Chưa có dữ liệu.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

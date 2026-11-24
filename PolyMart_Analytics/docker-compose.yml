@@ -1,0 +1,35 @@
+services:
+  api:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      DB_SERVER: ${DB_SERVER:?Set DB_SERVER in root .env}
+      DB_PORT: ${DB_PORT:-1433}
+      DB_DATABASE: ${DB_DATABASE:-polymart}
+      DB_USER: ${DB_USER:?Set DB_USER in root .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in root .env}
+      DB_ENCRYPT: ${DB_ENCRYPT:-true}
+      DB_TRUST_SERVER_CERTIFICATE: ${DB_TRUST_SERVER_CERTIFICATE:-false}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ./client
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_BASE_URL: http://api:8080
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?Set FLASK_SECRET_KEY in root .env}
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 8000
+      FLASK_DEBUG: "false"
+    ports:
+      - "5000:8000"

@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Phân tích dữ liệu{% endblock %}{% block heading %}Phân tích dữ liệu PolyMart{% endblock %}
+{% block content %}
+<div class="intro"><div><h2>Chỉ số tổng hợp</h2><p>Thống kê mô tả dựa trên các bảng đã có trong BACPAC. Không suy diễn quan hệ đơn hàng-khách hàng khi schema không cung cấp khóa liên kết.</p></div></div>
+<div class="kpis">
+{% for label,key in [('Khách hàng','customers'),('Đơn hàng','orders'),('Đánh giá','reviews'),('Sự kiện hành vi','behaviorEvents')] %}<div class="kpi"><span>{{ label }}</span><strong>{{ data.get('kpi',{}).get(key,'—') }}</strong></div>{% endfor %}
+</div>
+<div class="grid two">
+<section class="panel"><h3>Xu hướng đơn hàng</h3><canvas id="trend"></canvas></section>
+<section class="panel"><h3>Cơ cấu tần suất mua</h3><canvas id="freq"></canvas></section>
+</div>
+<section class="panel"><h3>Diễn giải chỉ số</h3><ul class="insights">
+<li><b>PurchaseFrequency:</b> tần suất mua được phân thành thấp (1–2), trung bình (3–5), cao (&gt;5); giá trị 0 hoặc NULL được giữ thành nhóm chưa có tần suất.</li>
+<li><b>AvgOrderValue:</b> giá trị đơn hàng trung bình lưu sẵn ở cấp khách hàng trong bảng Customers.</li>
+<li><b>OrderDate:</b> dùng để tổng hợp số đơn theo tháng. Schema hiện tại không có CustomerID trong Orders, do đó không thể tính doanh thu hay LTV theo khách hàng từ phép JOIN trực tiếp.</li>
+<li><b>RatingScore:</b> điểm đánh giá khách hàng lưu trong Customers; xem chi tiết trong danh sách khách hàng.</li>
+</ul></section>
+{% endblock %}
+{% block scripts %}<script>
+const d={{ data|tojson }};
+new Chart(document.getElementById('trend'),{type:'line',data:{labels:(d.orderTrend||[]).map(x=>x.month),datasets:[{label:'Số đơn',data:(d.orderTrend||[]).map(x=>x.total),tension:.3,borderWidth:2}]},options:{responsive:true}});
+new Chart(document.getElementById('freq'),{type:'doughnut',data:{labels:(d.customerBands||[]).map(x=>x.band),datasets:[{data:(d.customerBands||[]).map(x=>x.total)}]},options:{responsive:true}});
+</script>{% endblock %}

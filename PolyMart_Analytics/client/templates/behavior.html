@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% block title %}Hành vi khách hàng{% endblock %}{% block heading %}Phân tích hành vi khách hàng{% endblock %}
+{% block content %}
+<div class="intro"><div><h2>Behavior Intelligence · Markov Chain</h2><p>Phân tích chuỗi trạng thái CurrentStateID → NextStateID trong UserBehaviorHistory.</p></div></div>
+<div class="kpis">
+{% for label,key in [('Sự kiện','events'),('Khách có lịch sử','customers')] %}<div class="kpi"><span>{{ label }}</span><strong>{{ data.get('summary',{}).get(key,'—') }}</strong></div>{% endfor %}
+<div class="kpi"><span>Sự kiện đầu tiên</span><strong class="date-value">{{ data.get('summary',{}).get('firstEvent') or '—' }}</strong></div>
+<div class="kpi"><span>Sự kiện gần nhất</span><strong class="date-value">{{ data.get('summary',{}).get('lastEvent') or '—' }}</strong></div>
+</div>
+<div class="grid two">
+<section class="panel"><h3>Phân bố trạng thái hiện tại</h3><canvas id="stateChart"></canvas></section>
+<section class="panel"><h3>Xác suất chuyển trạng thái (ước lượng từ lịch sử)</h3><p class="muted">P(i→j) = số lần chuyển i sang j / tổng số lần chuyển đi từ i.</p><canvas id="markovChart"></canvas></section>
+</div>
+<section class="panel"><h3>Ma trận Markov lưu trong database</h3><p class="muted">Bảng MarkovTransitionMatrix là ma trận xác suất được lưu sẵn; bảng bên dưới không thay thế bằng ước lượng từ lịch sử.</p>
+<div class="table-wrap"><table><thead><tr><th>Trạng thái nguồn</th><th>Trạng thái đích</th><th>Xác suất</th></tr></thead><tbody>
+{% for x in matrix %}<tr><td>{{ x.fromState or '—' }}</td><td>{{ x.toState or '—' }}</td><td>{{ '%.4f'|format(x.probability or 0) }}</td></tr>{% else %}<tr><td colspan="3" class="empty">Chưa có ma trận Markov hoặc API chưa kết nối.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel"><h3>Khách hàng có nhiều sự kiện nhất</h3><div class="table-wrap"><table><thead><tr><th>Mã khách hàng</th><th>Tên</th><th>Số sự kiện</th><th>Lần cuối ghi nhận</th></tr></thead><tbody>
+{% for x in data.get('customerActivity',[]) %}<tr><td class="mono">{{ x.customerId or '—' }}</td><td>{{ x.customerName or '—' }}</td><td>{{ x.eventCount }}</td><td>{{ x.lastSeen or '—' }}</td></tr>{% else %}<tr><td colspan="4" class="empty">Chưa có lịch sử hành vi.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel"><h3>Các chuyển trạng thái phổ biến</h3><div class="table-wrap"><table><thead><tr><th>Từ</th><th>Đến</th><th>Số lần</th><th>Xác suất ước lượng</th></tr></thead><tbody>
+{% for x in data.get('markov',[]) %}<tr><td>{{ x.fromState or '—' }}</td><td>{{ x.toState or '—' }}</td><td>{{ x.transitions }}</td><td>{{ '%.2f'|format(x.probability*100) }}%</td></tr>{% else %}<tr><td colspan="4" class="empty">Không có cặp trạng thái đủ dữ liệu.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}
+{% block scripts %}<script>
+const d={{ data|tojson }};
+new Chart(document.getElementById('stateChart'),{type:'doughnut',data:{labels:(d.stateCounts||[]).map(x=>x.state||'Chưa xác định'),datasets:[{data:(d.stateCounts||[]).map(x=>x.total)}]},options:{responsive:true}});
+const m=d.markov||[];new Chart(document.getElementById('markovChart'),{type:'bar',data:{labels:m.map(x=>(x.fromState||'?')+' → '+(x.toState||'?')),datasets:[{label:'Xác suất (%)',data:m.map(x=>+(x.probability*100).toFixed(2))}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:100}}}});
+</script>{% endblock %}

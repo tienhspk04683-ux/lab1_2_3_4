@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block title %}Tổng quan · PolyMart{% endblock %}{% block heading %}Tổng quan hệ thống{% endblock %}
+{% block content %}
+<div class="intro"><div><h2>Customer Intelligence Dashboard</h2><p>Theo dõi dữ liệu vận hành và tín hiệu hành vi khách hàng từ cơ sở dữ liệu PolyMart.</p></div><a class="btn" href="/behavior">Khám phá hành vi →</a></div>
+<div class="kpis">
+{% for label,key in [('Khách hàng','customers'),('Đơn hàng','orders'),('Đánh giá','reviews'),('Sự kiện hành vi','behaviorEvents'),('Nút mạng lưới','networkNodes'),('Cạnh mạng lưới','networkEdges')] %}
+<div class="kpi"><span>{{ label }}</span><strong>{{ data.get('kpi',{}).get(key,'—') }}</strong><small>Ghi nhận trong database</small></div>
+{% endfor %}
+</div>
+<div class="grid two">
+<section class="panel"><div class="panel-head"><div><h3>Đơn hàng theo tháng</h3><p>Số bản ghi Orders theo OrderDate</p></div></div><canvas id="ordersChart"></canvas></section>
+<section class="panel"><div class="panel-head"><div><h3>Trạng thái hành vi</h3><p>Phân bố CurrentStateID trong lịch sử</p></div></div><canvas id="statesChart"></canvas></section>
+<section class="panel"><div class="panel-head"><div><h3>Nhóm tần suất mua</h3><p>Dựa trên PurchaseFrequency trong Customers</p></div></div><canvas id="bandsChart"></canvas></section>
+<section class="panel"><div class="panel-head"><div><h3>Tín hiệu đánh giá</h3><p>Phân loại theo cột IsSpam trong Reviews</p></div></div>
+<div class="big-number">{{ data.get('reviews',{}).get('spam',0) or 0 }} <small>/ {{ data.get('reviews',{}).get('total',0) or 0 }}</small></div><p class="muted">Đánh giá được đánh dấu spam trong dữ liệu hiện có.</p><a href="/reviews" class="text-link">Xem phân tích đánh giá →</a></section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const d={{ data|tojson }};
+function chart(id,type,labels,values,label){const el=document.getElementById(id);if(!el)return;new Chart(el,{type,data:{labels,datasets:[{label,data:values,borderWidth:2,borderRadius:6,tension:.3}]},options:{responsive:true,plugins:{legend:{display:type==='doughnut'}},scales:type==='doughnut'?{}:{y:{beginAtZero:true}}}})}
+chart('ordersChart','bar',(d.orderTrend||[]).map(x=>x.month),(d.orderTrend||[]).map(x=>x.total),'Đơn hàng');
+chart('statesChart','doughnut',(d.behaviorStates||[]).map(x=>x.state||'Chưa xác định'),(d.behaviorStates||[]).map(x=>x.total),'Sự kiện');
+chart('bandsChart','bar',(d.customerBands||[]).map(x=>x.band),(d.customerBands||[]).map(x=>x.total),'Khách hàng');
+</script>{% endblock %}

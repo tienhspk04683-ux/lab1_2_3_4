@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Mạng lưới PolyMart{% endblock %}{% block heading %}Phân tích mạng lưới{% endblock %}
+{% block content %}
+<div class="kpis"><div class="kpi"><span>Số nút</span><strong>{{ data.get('nodes',[])|length }}</strong></div><div class="kpi"><span>Số cạnh</span><strong>{{ data.get('edges',[])|length }}</strong></div></div>
+<section class="panel"><h3>Danh sách nút mạng lưới</h3><div class="table-wrap"><table><thead><tr><th>Mã nút</th><th>Tên nút</th><th>Loại</th><th>Địa chỉ</th><th>X</th><th>Y</th></tr></thead><tbody>
+{% for n in data.get('nodes',[]) %}<tr><td class="mono">{{ n.id }}</td><td>{{ n.name or '—' }}</td><td>{{ n.type or '—' }}</td><td>{{ n.address or '—' }}</td><td>{{ n.x or '—' }}</td><td>{{ n.y or '—' }}</td></tr>{% else %}<tr><td colspan="6" class="empty">Không có nút mạng lưới.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="panel"><h3>Các cạnh kết nối</h3><div class="table-wrap"><table><thead><tr><th>ID</th><th>Nút nguồn</th><th>Nút đích</th><th>Khoảng cách (km)</th></tr></thead><tbody>
+{% for e in data.get('edges',[]) %}<tr><td>{{ e.id }}</td><td>{{ e.sourceName or e.source }}</td><td>{{ e.targetName or e.target }}</td><td>{{ e.distanceKm or '—' }}</td></tr>{% else %}<tr><td colspan="4" class="empty">Không có cạnh.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}

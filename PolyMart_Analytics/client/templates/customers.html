@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Khách hàng{% endblock %}{% block heading %}Quản lý khách hàng{% endblock %}
+{% block content %}
+<section class="panel"><div class="panel-head"><div><h3>Thêm khách hàng</h3><p>Các trường mở rộng tương ứng trực tiếp với schema BACPAC.</p></div></div>
+<form class="form-grid" action="/customers/add" method="post">
+<label>Mã khách hàng *<input name="id" maxlength="10" required></label><label>Họ tên *<input name="name" maxlength="100" required></label>
+<label>Tuổi<input name="age" type="number" min="0"></label><label>Tần suất mua<input name="purchaseFrequency" type="number" min="0"></label>
+<label>Giá trị đơn trung bình<input name="avgOrderValue" type="number" min="0" step=".01"></label><label>Điểm đánh giá<input name="ratingScore" type="number" min="0" max="5" step=".1"></label>
+<label>Mã người giới thiệu<input name="referrerId" maxlength="10"></label><div class="form-action"><button class="btn" type="submit">Lưu khách hàng</button></div>
+</form></section>
+<section class="panel"><div class="panel-head"><div><h3>Danh sách khách hàng</h3><p>{{ customers|length }} bản ghi trả về</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Mã</th><th>Họ tên</th><th>Tuổi</th><th>Tần suất mua</th><th>Giá trị TB</th><th>Điểm</th><th>Giới thiệu bởi</th><th></th></tr></thead><tbody>
+{% for c in customers %}<tr><td class="mono">{{ c.id }}</td><td>{{ c.name or '—' }}</td><td>{{ c.age if c.age is not none else '—' }}</td><td>{{ c.purchaseFrequency if c.purchaseFrequency is not none else '—' }}</td><td>{{ '%.2f'|format(c.avgOrderValue) if c.avgOrderValue is not none else '—' }}</td><td>{{ c.ratingScore if c.ratingScore is not none else '—' }}</td><td>{{ c.referrerId or '—' }}</td><td><form method="post" action="/customers/{{ c.id }}/delete" onsubmit="return confirm('Xóa khách hàng {{ c.id }}?')"><button class="btn danger small">Xóa</button></form></td></tr>
+{% else %}<tr><td colspan="8" class="empty">Không có dữ liệu hoặc API chưa kết nối.</td></tr>{% endfor %}
+</tbody></table></div></section>{% endblock %}
